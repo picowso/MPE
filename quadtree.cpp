@@ -4,7 +4,6 @@
 const int LIM = 19;
 extern SDL_FPoint points[n_pnts], velocity[n_pnts];
 
-
 Qdtree::Qdtree() {
 	root = new Node;
 	root->rect.x = 0;
@@ -100,11 +99,11 @@ void Qdtree::build() {
 // vel calc
 SDL_FPoint Qdtree::vel_calc(Node *u, SDL_FPoint &pnt) {
 	float s = u->rect.u - u->rect.x;
-	float d = sqrtf(dis2(pnt, u->avg));
+	float d = dis2(pnt, u->avg);
 	SDL_FPoint acc = {0.f, 0.f};
 
 	if(d == 0) d = epsilon;
-	if(s/d < theta) {
+	if(s*s < theta*theta*d) {
 		SDL_FPoint w = compute_acc(pnt, u->avg, u->mass);
 		acc.x += w.x;
 		acc.y += w.y;
@@ -129,4 +128,18 @@ void Qdtree::destroy(Node* u) {
 	// u->rect = {0,0,0,0};
 	// u->avg = {0.f, 0.f};
     delete u;
+}
+
+vector<Rect> Qdtree::DrawQd(Node *u, int depth) {
+	if(depth == 7) return {};
+	vector<Rect> res;
+	res.push_back(u->rect);
+	for(int i = 0 ; i < 4 ; i++) {
+		if(u->kids[i] != nullptr) {
+			auto w = DrawQd(u->kids[i], depth + 1);
+			for(Rect k: w) res.push_back(k);
+		}
+	}
+
+	return res;
 }
