@@ -18,11 +18,12 @@ bool evil_a = 0;
 int frame_n = 0;
 float fps = 0.0f;
 
-// vector<array<int, 3>> clrs;
+vector<array<int, 3>> clrs;
 
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     // memset(where, 0, sizeof where);
+    clrs.resize(n_pnts);
     evil = {0,0};
     evil_o = {0,0};
     for(int i = 0 ; i < WINDOW_WIDTH ; i++) {
@@ -53,7 +54,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     	velocity[i].x = 0.f;
     	velocity[i].y = 0.f;
-    	// for(int j = 0 ; j < 3 ; j++) clrs[i][j] = rand()%256;
+    	for(int j = 0 ; j < 3 ; j++) clrs[i][j] = rand()%256;
     }
 
     return SDL_APP_CONTINUE;
@@ -73,12 +74,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         // cout << evil.x << " " << evil.y << endl;
     }
 
-    if(event->key.scancode == SDL_SCANCODE_R) {
-        evil_a = 1;
-    }
-
-    if(event->key.scancode == SDL_SCANCODE_E) {
-        evil_a = 0;
+    if (event->type == SDL_EVENT_KEY_DOWN) {
+        if (event->key.scancode == SDL_SCANCODE_R) evil_a ^= 1;
     }
 
     return SDL_APP_CONTINUE;
@@ -225,8 +222,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     col_fix();
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);  /* black, full alpha */
     SDL_RenderClear(renderer);  /* start with a blank canvas. */
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);  /* white, full alpha */
-    SDL_RenderPoints(renderer, points, n_pnts);  /* draw all the points! */
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);  /* white, full alpha */
+    // SDL_RenderPoints(renderer, points, n_pnts);  /* draw all the points! */
+    for(int i = 0 ; i < n_pnts ; i++) {
+        SDL_SetRenderDrawColor(renderer, clrs[i][0], clrs[i][1], clrs[i][2], SDL_ALPHA_OPAQUE);
+        SDL_FRect nrect = {points[i].x-c_box/2, points[i].y-c_box/2, c_box/2, c_box/2};
+        SDL_RenderRect(renderer, &nrect);
+    }
 
     if(evil_a) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);  /* white, full alpha */
@@ -260,6 +262,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderDebugTextFormat(renderer, WINDOW_WIDTH - 120, 10, "FPS: %.1f", fps);
+    SDL_RenderDebugTextFormat(renderer, 10, WINDOW_HEIGHT - 10, "Press 'R' to toggle collision box");
 
     SDL_RenderPresent(renderer);
     quad.destroy(quad.root);

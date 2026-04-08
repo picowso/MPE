@@ -8,16 +8,16 @@
 using namespace std;
 using dbl = long double;
 
-#define WINDOW_WIDTH 500
-#define WINDOW_HEIGHT 500
-const int n_pnts = 1500;
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 1024
+const int n_pnts = 4000;
 
 // quadtree search para :3
-const float theta = 0.3f;
-const float epsilon = 0.1f;
-const float alpha = 0.1f; // step
-const int rec_s = 3;
-const int c_box = 4; // collision box size :3
+const float theta = 1.f;
+const float epsilon = 0.5f;
+const float alpha = 0.3f; // step
+const int rec_s = 4;
+const int c_box = 5; // collision box size :3
 const int ev_box = 5; // evil box size
 // funcs
 // struct Point {
