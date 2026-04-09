@@ -28,6 +28,8 @@ SDL_FPoint lpoints[render_b][n_pnts];
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     // memset(where, 0, sizeof where);
+    cout << "Press 'R' to toggle black hole" << endl;
+    cout << "Scroll mouse whell to change its force:" << endl;
     clrs.resize(n_pnts);
     evil = {0,0};
     evil_o = {0,0};
@@ -162,7 +164,7 @@ void col_fix() {
     // evil point :3
     if(evil_a) {
         // SDL_FPoint evil_vel = {evil.x - evil_o.x, evil.y - evil_o.y};
-        SDL_FPoint evil_vel = {force, force};
+        SDL_FPoint evil_vel = {(float)force, (float)force};
         // evil_vel.x *= 10;
         // evil_vel.y *= 10;
         SDL_FPoint oldevil = evil;
@@ -313,9 +315,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         last_c = now;
     }
 
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderDebugTextFormat(renderer, WINDOW_WIDTH - 120, 10, "FPS: %.1f", fps);
-    SDL_RenderDebugTextFormat(renderer, 10, WINDOW_HEIGHT - 10, "Press 'R' to toggle black hole");
+    SDL_RenderDebugTextFormat(renderer, 10, 10, "Press 'R' to toggle black hole");
     SDL_RenderDebugTextFormat(renderer, WINDOW_WIDTH - 350, WINDOW_HEIGHT - 10, "Scroll mouse whell to change its force: %dN", force);
 
     SDL_RenderPresent(renderer);

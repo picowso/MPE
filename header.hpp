@@ -9,7 +9,7 @@ using namespace std;
 using dbl = long double;
 
 #define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 1024
+#define WINDOW_HEIGHT 720
 const int n_pnts = 4000;
 
 const float theta = 1.f; // quadtree search para
