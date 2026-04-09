@@ -12,13 +12,14 @@ using dbl = long double;
 #define WINDOW_HEIGHT 1024
 const int n_pnts = 4000;
 
-// quadtree search para :3
-const float theta = 1.f;
+const float theta = 1.f; // quadtree search para
 const float epsilon = 0.5f;
 const float alpha = 0.3f; // step
 const int rec_s = 4;
-const int c_box = 5; // collision box size :3
-const int ev_box = 5; // evil box size
+const int c_box = 7; // collision box size :3
+const int ev_box = 25; // evil box size
+const float resti = 1.f; // elasticity
+
 // funcs
 // struct Point {
 // 	float x, y;
@@ -60,5 +61,6 @@ struct Qdtree {
 // physics:
 void wall(SDL_FPoint& p, SDL_FPoint& v);
 void fix_col(SDL_FPoint& pntf, SDL_FPoint& pntt, SDL_FPoint& velf, SDL_FPoint& velt);
+void attract(SDL_FPoint& pntf, SDL_FPoint& pntt, SDL_FPoint& velf, SDL_FPoint& velt);
 SDL_FPoint compute_acc(SDL_FPoint a, SDL_FPoint b, int massb);
 float dis2(SDL_FPoint &a, SDL_FPoint &b);

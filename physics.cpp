@@ -1,7 +1,6 @@
 // physics.cpp: where the maths happen
 #include "header.hpp"
 
-const float resti = 0.9f; // elasticity
 // this was kinda helpful:
 // https://ocw.mit.edu/courses/3-91-mechanical-behavior-of-plastics-spring-2007/f6536249600e453536e04776dbb876a1_01_elast.pdf
 
@@ -50,11 +49,54 @@ SDL_FPoint compute_acc(SDL_FPoint a, SDL_FPoint b, int massb) {
     return {dx * inv3, dy * inv3};
 }
 
-// already assumes collision, just fixes it
+// already 'assumes' collision, just fixes it
 void fix_col(SDL_FPoint& pntf, SDL_FPoint& pntt, SDL_FPoint& velf, SDL_FPoint& velt) {
 	// direction
 	float dx = pntf.x - pntt.x;
 	float dy = pntf.y - pntt.y;
+	float dis2 = dx*dx + dy*dy;
+
+	if(dis2 > c_box*c_box or dis2 == 0.f) {
+		// cout << "AWILI" << endl;
+		return;
+	}
+
+	float dis = sqrtf(dis2);
+	// collision normal
+	float nx = dx / dis;
+	float ny = dy / dis;
+
+	float dvx = velf.x - velt.x;
+	float dvy = velf.y - velt.y;
+
+	float spd = dvx*nx + dvy*ny;
+	// already moving other dir 
+	if(spd > 0.f) return;
+
+	// to encourage not overlapping
+    pntf.x += nx * (c_box-dis) / 2.f;
+    pntf.y += ny * (c_box-dis) / 2.f;
+    pntt.x -= nx * (c_box-dis) / 2.f;
+    pntt.y -= ny * (c_box-dis) / 2.f;
+
+	// so they aren't comfortable with low velocity yet near each other :P
+	spd = min(spd, -0.001f);
+
+	const float lresti = 0.8f;
+	float ret = spd*(1+lresti)/2.f;
+	velf.x -= ret*nx;
+	velf.y -= ret*ny;
+	velt.x += ret*nx;
+	velt.y += ret*ny;
+	velt.x *= 0.99f;
+	velt.y *= 0.99f;
+}
+
+// ikr?
+void attract(SDL_FPoint& pntf, SDL_FPoint& pntt, SDL_FPoint& velf, SDL_FPoint& velt) {
+	// direction
+	float dx = -pntf.x + pntt.x;
+	float dy = -pntf.y + pntt.y;
 	float dis = sqrtf(dx*dx + dy*dy);
 
 	if(dis == 0.f) {

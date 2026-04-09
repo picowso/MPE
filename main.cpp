@@ -61,6 +61,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 }
 
 /* This function runs when a new event (mouse input, keypresses, etc) occurs. */
+int force = 10;
 SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     if(event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;
@@ -76,6 +77,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
     if (event->type == SDL_EVENT_KEY_DOWN) {
         if (event->key.scancode == SDL_SCANCODE_R) evil_a ^= 1;
+    }
+
+    if (event->type == SDL_EVENT_MOUSE_WHEEL) {
+        if(event->wheel.y > 0) force += 1;
+        else force -= 1;
     }
 
     return SDL_APP_CONTINUE;
@@ -124,6 +130,13 @@ bool inside(int x, int y) {
     return (x >= 0 and x <= WINDOW_WIDTH) and (y >= 0 and y <= WINDOW_HEIGHT);
 }
 
+// in evil :pray: :sob:
+bool inevil(SDL_FPoint &pnt) {
+    float dx = pnt.x - evil.x;
+    float dy = pnt.y - evil.y;
+    return dx*dx + dy*dy < ev_box*ev_box;
+}
+
 // fixing collisions.
 void col_fix() {
     for(int i = 0; i < n_pnts; i++) {
@@ -142,40 +155,65 @@ void col_fix() {
 
     // evil point :3
     if(evil_a) {
-        SDL_FPoint evil_vel = {evil.x - evil_o.x, evil.y - evil_o.y};
-        evil_vel.x *= 10;
-        evil_vel.y *= 10;
+        // SDL_FPoint evil_vel = {evil.x - evil_o.x, evil.y - evil_o.y};
+        SDL_FPoint evil_vel = {force, force};
+        // evil_vel.x *= 10;
+        // evil_vel.y *= 10;
         SDL_FPoint oldevil = evil;
         SDL_FRect evil_rect = {evil.x-ev_box, evil.y-ev_box, 2*ev_box, 2*ev_box};
         for(int i = 0 ; i < n_pnts ; i++) {
+            // attract(evil, points[i], evil_vel, velocity[i]);
+            attract(points[i], evil, velocity[i], evil_vel);
+
             // sdl has every function bro
-            if(SDL_PointInRectFloat(&points[i], &evil_rect)) {
-                fix_col(points[i], evil, velocity[i], evil_vel);
+            if(inevil(points[i])) {
+                // int u = 2*(velocity[i].x > 0) + (velocity[i].y > 0);
+                // if(u&1) velocity[i].y *= -resti;
+                // else velocity[i].x *= -resti;
+
+                // if(u&2) velocity[i].x *= -resti;
+                // else velocity[i].y *= -resti;
                 
-                // binary search while on ep s.t. after ep sec its still inside :3
-                float ep = 1.f;
-                for(float j = 32.f ; j >= 0.01 ; j /= 2) {
-                    SDL_FPoint np = points[i];
-                    ep += j;
-                    np.x = ep * velocity[i].x;
-                    np.y = ep * velocity[i].y;
-                    if(!SDL_PointInRectFloat(&np, &evil_rect)) ep -= j;
-                }
+                // // // binary search while on ep s.t. after ep sec its still inside :3
+                // float ep = 2047.875f;
+                // for(float j = 1024.f ; j >= 0.01 ; j /= 2) {
+                //     SDL_FPoint np = points[i];
+                //     ep -= j;
+                //     np.x = ep * velocity[i].x;
+                //     np.y = ep * velocity[i].y;
+                //     if(inevil(np)) ep += j;
+                // }
 
-                points[i].x += ep * velocity[i].x;
-                points[i].y += ep * velocity[i].y;
-                if(SDL_PointInRectFloat(&points[i], &evil_rect)) {
-                    int u = 2*(velocity[i].x > 0) + (velocity[i].y > 0);
-                    if(u&1) points[i].x = evil_rect.x;
-                    else points[i].x = evil_rect.x + evil_rect.h;
+                // points[i].x += ep * velocity[i].x;
+                // points[i].y += ep * velocity[i].y;
+                // if(SDL_PointInRectFloat(&points[i], &evil_rect)) {*/
+                // }
 
-                    if(u&2) points[i].y = evil_rect.y;
-                    else points[i].y = evil_rect.y + evil_rect.w;
-                }
+                // // drawing in paper helps guys
+                // float pl = points[i].x - l;
+                // float pr = t - points[i].x;
+                // float pt = points[i].y - t;
             }
         }
 
         evil = oldevil;
+    }
+}
+
+// circle, copied from the internet :P
+void draw_circle(SDL_Renderer* renderer, int rx, int ry, int r) {
+    for(int x = 0; x <= r; ++x) {
+        int y = (int)round(sqrt(r * r - x * x));
+
+        SDL_RenderPoint(renderer, rx + x, ry + y);
+        SDL_RenderPoint(renderer, rx + x, ry - y);
+        SDL_RenderPoint(renderer, rx - x, ry + y);
+        SDL_RenderPoint(renderer, rx - x, ry - y);
+
+        SDL_RenderPoint(renderer, rx + y, ry + x);
+        SDL_RenderPoint(renderer, rx + y, ry - x);
+        SDL_RenderPoint(renderer, rx - y, ry + x);
+        SDL_RenderPoint(renderer, rx - y, ry - x);
     }
 }
 
@@ -192,6 +230,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         SDL_FPoint w = quad.vel_calc(quad.root, points[i]);
         velocity[i].x += alpha * w.x;
         velocity[i].y += alpha * w.y;
+        velocity[i].x /= 10.f;
+        velocity[i].y /= 10.f; // to make stuff slow
     }
 
     for(int i = 0 ; i < n_pnts ; i++) {
@@ -224,16 +264,17 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_RenderClear(renderer);  /* start with a blank canvas. */
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);  /* white, full alpha */
     // SDL_RenderPoints(renderer, points, n_pnts);  /* draw all the points! */
+
     for(int i = 0 ; i < n_pnts ; i++) {
         SDL_SetRenderDrawColor(renderer, clrs[i][0], clrs[i][1], clrs[i][2], SDL_ALPHA_OPAQUE);
         SDL_FRect nrect = {points[i].x-c_box/2, points[i].y-c_box/2, c_box/2, c_box/2};
-        SDL_RenderRect(renderer, &nrect);
+        SDL_RenderFillRect(renderer, &nrect);
     }
 
     if(evil_a) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);  /* white, full alpha */
         SDL_FRect evil_rect = {evil.x-ev_box, evil.y-ev_box, 2*ev_box, 2*ev_box};
-        SDL_RenderRect(renderer, &evil_rect);
+        draw_circle(renderer, evil.x, evil.y, ev_box);
     }
 
     // draw rectangles of quadtree (debugging only :3)
@@ -262,12 +303,14 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderDebugTextFormat(renderer, WINDOW_WIDTH - 120, 10, "FPS: %.1f", fps);
-    SDL_RenderDebugTextFormat(renderer, 10, WINDOW_HEIGHT - 10, "Press 'R' to toggle collision box");
+    SDL_RenderDebugTextFormat(renderer, 10, WINDOW_HEIGHT - 10, "Press 'R' to toggle black hole");
+    SDL_RenderDebugTextFormat(renderer, WINDOW_WIDTH - 350, WINDOW_HEIGHT - 10, "Scroll mouse whell to change its force: %dN", force);
 
     SDL_RenderPresent(renderer);
     quad.destroy(quad.root);
     quad.root = new Node;
     quad.root->rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    for(int i=0;i<n_pnts;i++){velocity[i].x *= 10.f;velocity[i].y *= 10.f;}
     return SDL_APP_CONTINUE;
 }
 

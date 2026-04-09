@@ -1,7 +1,7 @@
 // quadtree.cpp: Quadtree! https://en.wikipedia.org/wiki/Quadtree
 #include "header.hpp"
 
-const int LIM = 19;
+const int LIM = 12;
 extern SDL_FPoint points[n_pnts], velocity[n_pnts];
 
 Qdtree::Qdtree() {
@@ -56,10 +56,20 @@ void Qdtree::propagate(Node *u, int depth) {
 	// if(u->mass == 0) u->has_empty = 1;
 	if(depth == LIM) {
 		if(u->mass == 0) return;
+		int un = u->pnts.size();
+		// int r = rand()%un;
 		for(SDL_FPoint k: u->pnts) {
 			u->avg.x += k.x;
 			u->avg.y += k.y;
 		}
+
+		// for(int i = 0 ; i < un ; i++) {
+		// 	for(int r = 0 ; r < un ; r++) {
+		// 		if(i == r) continue;
+		// 		// fix_col();
+		// 		fix_col(points[i], points[r], velocity[i], velocity[r]);
+		// 	}
+		// }
 
 		u->avg.x /= (float)u->mass;
 		u->avg.y /= (float)u->mass;
