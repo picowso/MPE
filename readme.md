@@ -10,13 +10,9 @@ it's able to run 7000 points at an average of 15.3fps in my old thinkpad so it's
 
 just run `make`, make sure you have `make` and also you compiled/installed `SDL3`, to compile for web run `./deploy_web.fish` using any shell actually!
 
+### Physics
 
-### TODO:
+I used physics concepts like elasticity, newton's law of universal gravitation which is mainly what this 'engine' is based on.
 
-- [X] implement quadtree
 
-- [X] make it user-interactive (let the user throw a ball on the particles)
-
-- [ ] make the quadtree more efficient (dont use sparse quadtree)
-
-- [ ] make a collision system using Quadtrees instead of the boxing method
+I was forced to learn about integrators, but i settled with the simplest one, which is "euler integrator", basically just adding the change each time, basically riemann sum.
