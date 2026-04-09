@@ -15,17 +15,23 @@ SDL_FPoint points[n_pnts], velocity[n_pnts];
 SDL_FPoint evil; // evil point :3
 SDL_FPoint evil_o;
 bool evil_a = 0;
-int frame_n = 0;
 float fps = 0.0f;
-
+int frame_n = 0;
 vector<array<int, 3>> clrs;
 
+// idea: render the last render_b pixels at slightly less opacity (cool effect!)
+const int render_b = 4; // must be a power of two
+const int rbm = render_b-1;
+int frame = render_b+1;
+
+SDL_FPoint lpoints[render_b][n_pnts];
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     // memset(where, 0, sizeof where);
     clrs.resize(n_pnts);
     evil = {0,0};
     evil_o = {0,0};
+    // memset(lpoints, 0, sizeof lpoints);
     for(int i = 0 ; i < WINDOW_WIDTH ; i++) {
         for(int j = 0 ; j < WINDOW_HEIGHT ; j++) {
             where[i][j] = -1;
@@ -49,7 +55,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     for(int i = 0 ; i < n_pnts ; i++) {
     	points[i].x = SDL_randf() * ((float) WINDOW_WIDTH);
     	points[i].y = SDL_randf() * ((float) WINDOW_HEIGHT);
-        
+        for(int j = 0 ; j < render_b ; j++) lpoints[j][i] = points[i];
         where[(int)points[i].x][(int)points[i].y] = i;
 
     	velocity[i].x = 0.f;
@@ -218,8 +224,10 @@ void draw_circle(SDL_Renderer* renderer, int rx, int ry, int r) {
 }
 
 long long last_c = SDL_GetPerformanceCounter();
+
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void *appstate) {
+    frame++;
     // cout << SDL_GetPerformanceCounter() << endl;
 	// |F| = \sum 1/r^2
     // for(int i = 0 ; i < n_pnts ; i++) quad.insert(points[i]);
@@ -266,9 +274,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     // SDL_RenderPoints(renderer, points, n_pnts);  /* draw all the points! */
 
     for(int i = 0 ; i < n_pnts ; i++) {
-        SDL_SetRenderDrawColor(renderer, clrs[i][0], clrs[i][1], clrs[i][2], SDL_ALPHA_OPAQUE);
-        SDL_FRect nrect = {points[i].x-c_box/2, points[i].y-c_box/2, c_box/2, c_box/2};
-        SDL_RenderFillRect(renderer, &nrect);
+        lpoints[frame&rbm][i] = points[i];
+        for(int j = frame-render_b ; j < frame ; j++) {
+            int r = j - frame + render_b;
+            SDL_SetRenderDrawColor(renderer, clrs[i][0], clrs[i][1], clrs[i][2], SDL_ALPHA_OPAQUE - 50*r);
+            SDL_FRect nrect = {lpoints[j&rbm][i].x-c_box/2, lpoints[j&rbm][i].y-c_box/2, c_box/2, c_box/2};
+            SDL_RenderFillRect(renderer, &nrect);
+        }
     }
 
     if(evil_a) {
@@ -310,7 +322,11 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     quad.destroy(quad.root);
     quad.root = new Node;
     quad.root->rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-    for(int i=0;i<n_pnts;i++){velocity[i].x *= 10.f;velocity[i].y *= 10.f;}
+    for(int i=0;i<n_pnts;i++){
+        velocity[i].x *= 10.f;
+        velocity[i].y *= 10.f;
+    }
+
     return SDL_APP_CONTINUE;
 }
 
