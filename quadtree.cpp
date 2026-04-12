@@ -1,7 +1,7 @@
 // quadtree.cpp: Quadtree! https://en.wikipedia.org/wiki/Quadtree
 #include "header.hpp"
 
-const int LIM = 12;
+const int LIM = 11;
 extern SDL_FPoint points[n_pnts], velocity[n_pnts];
 
 Qdtree::Qdtree() {

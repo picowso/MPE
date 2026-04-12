@@ -20,7 +20,7 @@ int frame_n = 0;
 vector<array<int, 3>> clrs;
 
 // idea: render the last render_b pixels at slightly less opacity (cool effect!)
-const int render_b = 4; // must be a power of two
+const int render_b = 8; // must be a power of two
 const int rbm = render_b-1;
 int frame = render_b+1;
 
@@ -83,11 +83,29 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         // cout << evil.x << " " << evil.y << endl;
     }
 
-    if (event->type == SDL_EVENT_KEY_DOWN) {
+    if(event->type == SDL_EVENT_KEY_DOWN) {
         if (event->key.scancode == SDL_SCANCODE_R) evil_a ^= 1;
+        if (event->key.scancode == SDL_SCANCODE_N) {
+            for(int i = 0 ; i < WINDOW_WIDTH ; i++) {
+                for(int j = 0 ; j < WINDOW_HEIGHT ; j++) {
+                    where[i][j] = -1;
+                }
+            }
+
+            for(int i = 0 ; i < n_pnts ; i++) {
+                points[i].x = SDL_randf() * ((float) WINDOW_WIDTH);
+                points[i].y = SDL_randf() * ((float) WINDOW_HEIGHT);
+                for(int j = 0 ; j < render_b ; j++) lpoints[j][i] = points[i];
+                where[(int)points[i].x][(int)points[i].y] = i;
+
+                velocity[i].x = 0.f;
+                velocity[i].y = 0.f;
+                for(int j = 0 ; j < 3 ; j++) clrs[i][j] = rand()%256;
+            }
+        }
     }
 
-    if (event->type == SDL_EVENT_MOUSE_WHEEL) {
+    if(event->type == SDL_EVENT_MOUSE_WHEEL) {
         if(event->wheel.y > 0) force += 1;
         else force -= 1;
     }
@@ -277,18 +295,22 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     for(int i = 0 ; i < n_pnts ; i++) {
         lpoints[frame&rbm][i] = points[i];
-        for(int j = frame-render_b ; j < frame ; j++) {
+        for(int j = frame ; j >= frame-render_b ; j--) {
             int r = j - frame + render_b;
-            SDL_SetRenderDrawColor(renderer, clrs[i][0], clrs[i][1], clrs[i][2], SDL_ALPHA_OPAQUE - 50*r);
+            SDL_SetRenderDrawColor(renderer, clrs[i][0], clrs[i][1], clrs[i][2], SDL_ALPHA_OPAQUE - 30*(8-r));
             SDL_FRect nrect = {lpoints[j&rbm][i].x-c_box/2, lpoints[j&rbm][i].y-c_box/2, c_box/2, c_box/2};
             SDL_RenderFillRect(renderer, &nrect);
+            // draw_circle(rendere)
         }
     }
 
     if(evil_a) {
+        int evt = ev_box;
+        evt += (force/4);
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);  /* white, full alpha */
-        SDL_FRect evil_rect = {evil.x-ev_box, evil.y-ev_box, 2*ev_box, 2*ev_box};
-        draw_circle(renderer, evil.x, evil.y, ev_box);
+        SDL_FRect evil_rect = {evil.x-evt, evil.y-evt, 2*evt, 2*evt};
+        draw_circle(renderer, evil.x, evil.y, evt);
+        evt -= (force/4);
     }
 
     // draw rectangles of quadtree (debugging only :3)
@@ -315,10 +337,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         last_c = now;
     }
 
+    SDL_SetRenderScale(renderer, 1.5f, 1.5f);
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderDebugTextFormat(renderer, WINDOW_WIDTH - 120, 10, "FPS: %.1f", fps);
-    SDL_RenderDebugTextFormat(renderer, 10, 10, "Press 'R' to toggle black hole");
-    SDL_RenderDebugTextFormat(renderer, WINDOW_WIDTH - 350, WINDOW_HEIGHT - 10, "Scroll mouse whell to change its force: %dN", force);
+    SDL_RenderDebugTextFormat(renderer, (WINDOW_WIDTH - 120)/1.5, 10/1.5, "FPS: %.1f", fps);
+    SDL_RenderDebugTextFormat(renderer, 10/1.5, 10/1.5, "Press 'R' to toggle black hole");
+    SDL_RenderDebugTextFormat(renderer, (WINDOW_WIDTH - 525)/1.5, (WINDOW_HEIGHT - 20)/1.5, "Scroll mouse whell to change its force: %dN", force);
+    SDL_RenderDebugTextFormat(renderer, 10/1.5, (WINDOW_HEIGHT - 20)/1.5, "Press 'N' for reset");
+    SDL_SetRenderScale(renderer, 1.0f, 1.0f);
 
     SDL_RenderPresent(renderer);
     quad.destroy(quad.root);

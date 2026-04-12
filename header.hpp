@@ -10,14 +10,14 @@ using dbl = long double;
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
-const int n_pnts = 4000;
+const int n_pnts = 3667; // haha 67
 
 const float theta = 1.f; // quadtree search para
 const float epsilon = 0.5f;
 const float alpha = 0.39f; // step
 const int rec_s = 4;
 const int c_box = 7; // collision box size :3
-const int ev_box = 25; // evil box size
+const int ev_box = 10; // evil box size
 const float resti = 1.f; // elasticity
 
 // funcs
