@@ -1,10 +1,10 @@
 source emsdk/emsdk_env.fish
 
-em++ -O2 -std=c++17 \
-    main.cpp physics.cpp quadtree.cpp \
+em++ -std=c++20 -O3 \
+    -sALLOW_MEMORY_GROWTH=1 \
+    -o index.html main.cpp quadtree.cpp physics.cpp \
+    $(pkg-config --cflags --libs sdl3) \
     -sUSE_SDL=3 \
-    # -sMINIMAL_RUNTIME=0 \
-    --shell-file shell.html \
-    -o index.html
-
+    --shell-file shell.html
+rm ../MPE-emscripten/*
 mv index.html index.js index.wasm ../MPE-emscripten/

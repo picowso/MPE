@@ -20,7 +20,7 @@ int frame_n = 0;
 vector<array<int, 3>> clrs;
 
 // idea: render the last render_b pixels at slightly less opacity (cool effect!)
-const int render_b = 8; // must be a power of two
+const int render_b = 4; // must be a power of two
 const int rbm = render_b-1;
 int frame = render_b+1;
 
