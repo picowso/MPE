@@ -14,7 +14,7 @@ const int n_pnts = 3667; // haha 67
 
 const float theta = 1.f; // quadtree search para
 const float epsilon = 0.5f;
-const float alpha = 0.39f; // step
+const float alpha = 0.6f; // step
 const int rec_s = 4;
 const int c_box = 7; // collision box size :3
 const int ev_box = 10; // evil box size

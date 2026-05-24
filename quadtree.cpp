@@ -1,4 +1,4 @@
-// quadtree.cpp: Quadtree! https://en.wikipedia.org/wiki/Quadtree
+// quadtree.cpp: Quadtree! a bad implementation by me
 #include "header.hpp"
 
 const int LIM = 11;

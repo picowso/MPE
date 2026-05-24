@@ -156,7 +156,7 @@ bool inside(int x, int y) {
     return (x >= 0 and x <= WINDOW_WIDTH) and (y >= 0 and y <= WINDOW_HEIGHT);
 }
 
-// in evil :pray: :sob:
+// in evil :pray:
 bool inevil(SDL_FPoint &pnt) {
     float dx = pnt.x - evil.x;
     float dy = pnt.y - evil.y;
@@ -308,7 +308,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         int evt = ev_box;
         evt += (force/4);
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);  /* white, full alpha */
-        SDL_FRect evil_rect = {evil.x-evt, evil.y-evt, 2*evt, 2*evt};
+        // SDL_FPi evil_rectx = {evil.x-evt, evil.y-evt, 2*evt, 2*evt};
         draw_circle(renderer, evil.x, evil.y, evt);
         evt -= (force/4);
     }
